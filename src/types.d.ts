@@ -1,0 +1,2 @@
+declare module 'minecraft-assets';
+

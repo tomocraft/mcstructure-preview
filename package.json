@@ -1,0 +1,51 @@
+{
+  "name": "mcstructure-preview",
+  "displayName": "MCStructure Preview",
+  "description": "Preview Minecraft Bedrock .mcstructure files as an interactive 3D scene.",
+  "version": "1.0.0",
+  "publisher": "Tomocraft",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCustomEditor:mcstructure.preview"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "mcstructure.preview",
+        "displayName": "MCStructure 3D Preview",
+        "selector": [
+          {
+            "filenamePattern": "*.mcstructure"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "lint": "echo lint not configured",
+    "test": "echo \"No tests configured\""
+  },
+  "dependencies": {
+    "minecraft-assets": "github:tomocraft/node-minecraft-assets#master",
+    "prismarine-nbt": "^2.8.0",
+    "three": "^0.183.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/three": "^0.183.1",
+    "@types/vscode": "^1.110.0",
+    "typescript": "^5.9.3"
+  }
+}
