@@ -43,7 +43,8 @@ class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<
     webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.joinPath(this.context.extensionUri, 'media')
+        vscode.Uri.joinPath(this.context.extensionUri, 'media'),
+        vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three')
       ]
     };
 
@@ -150,10 +151,10 @@ class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<
       vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.js')
     );
     const threeModuleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'three', 'build', 'three.module.js')
+      vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'build', 'three.module.js')
     );
     const threeAddonsBaseUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'three', 'examples', 'jsm')
+      vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'examples', 'jsm')
     );
 
     const nonce = getNonce();
