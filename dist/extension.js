@@ -64,8 +64,7 @@ class McstructurePreviewProvider {
         webviewPanel.webview.options = {
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.joinPath(this.context.extensionUri, 'media'),
-                vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three')
+                vscode.Uri.joinPath(this.context.extensionUri, 'media')
             ]
         };
         webviewPanel.webview.html = this.getHtml(webviewPanel.webview);
@@ -158,8 +157,8 @@ class McstructurePreviewProvider {
     }
     getHtml(webview) {
         const viewerScriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.js'));
-        const threeModuleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'build', 'three.module.js'));
-        const threeAddonsBaseUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'examples', 'jsm'));
+        const threeModuleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'three', 'build', 'three.module.js'));
+        const threeAddonsBaseUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'three', 'examples', 'jsm'));
         const nonce = getNonce();
         const csp = [
             "default-src 'none'",
