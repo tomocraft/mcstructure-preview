@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EditorState } from '@codemirror/state';
+import { EditorView, keymap, lineNumbers } from '@codemirror/view';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { foldGutter, foldKeymap, indentOnInput, bracketMatching, syntaxHighlighting, HighlightStyle, unfoldAll } from '@codemirror/language';
+import { json } from '@codemirror/lang-json';
+import { searchKeymap, highlightSelectionMatches, search, openSearchPanel, closeSearchPanel, findNext, findPrevious } from '@codemirror/search';
+import { tags } from '@lezer/highlight';
 
 const vscode = acquireVsCodeApi();
 
@@ -12,9 +19,11 @@ const btnAxes = document.getElementById('btnAxes');
 const btnWireframe = document.getElementById('btnWireframe');
 const btnEdit = document.getElementById('btnEdit');
 const jsonEditor = document.getElementById('jsonEditor');
-const jsonTextarea = document.getElementById('jsonTextarea');
+const jsonEditorHost = document.getElementById('jsonEditorHost');
 const btnJsonApply = document.getElementById('btnJsonApply');
 const btnJsonClose = document.getElementById('btnJsonClose');
+const btnJsonFormat = document.getElementById('btnJsonFormat');
+const btnJsonExpandAll = document.getElementById('btnJsonExpandAll');
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
 renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -45,6 +54,221 @@ scene.add(rotatePivot);
 
 const worldRoot = new THREE.Group();
 rotatePivot.add(worldRoot);
+
+const jsonHighlightStyle = HighlightStyle.define([
+  { tag: tags.propertyName, color: '#9cdcfe' },
+  { tag: tags.string, color: '#ce9178' },
+  { tag: tags.number, color: '#b5cea8' },
+  { tag: tags.bool, color: '#569cd6' },
+  { tag: tags.null, color: '#569cd6' },
+  { tag: tags.brace, color: '#d4d4d4' },
+  { tag: tags.squareBracket, color: '#d4d4d4' },
+  { tag: tags.separator, color: '#d4d4d4' }
+]);
+
+const jsonEditorView = new EditorView({
+  state: EditorState.create({
+    doc: '',
+    extensions: [
+      lineNumbers(),
+      foldGutter(),
+      history(),
+      indentOnInput(),
+      bracketMatching(),
+      highlightSelectionMatches(),
+      json(),
+      syntaxHighlighting(jsonHighlightStyle),
+      search(),
+      keymap.of([
+        { key: 'Mod-f', run: openSearchPanel },
+        { key: 'Escape', run: closeSearchPanel },
+        ...defaultKeymap,
+        ...historyKeymap,
+        ...foldKeymap,
+        ...searchKeymap
+      ]),
+      EditorView.theme({
+        '&': {
+          height: '100%',
+          fontSize: '12px',
+          backgroundColor: '#111111',
+          color: '#d4d4d4'
+        },
+
+        '.cm-editor': {
+          height: '100%',
+          position: 'relative'
+        },
+
+        '.cm-scroller': {
+          overflow: 'auto',
+          fontFamily: 'Consolas, monospace',
+          lineHeight: '1.45'
+        },
+
+        '.cm-content': {
+          padding: '8px 0'
+        },
+
+        '.cm-line': {
+          paddingLeft: '12px',
+          paddingRight: '8px'
+        },
+
+        '.cm-gutters': {
+          backgroundColor: '#111111',
+          color: '#858585',
+          borderRight: '1px solid rgba(255, 255, 255, 0.18)'
+        },
+
+        '.cm-activeLineGutter': {
+          backgroundColor: '#1a1a1a'
+        },
+
+        '.cm-activeLine': {
+          backgroundColor: 'rgba(255, 255, 255, 0.03)'
+        },
+
+        '.cm-selectionBackground, &.cm-focused .cm-selectionBackground, ::selection': {
+          backgroundColor: 'rgba(38, 79, 120, 0.6)'
+        },
+
+        '.cm-cursor': {
+          borderLeftColor: '#d4d4d4'
+        },
+
+        '.cm-foldPlaceholder': {
+          backgroundColor: '#2a2a2a',
+          border: 'none',
+          color: '#cccccc'
+        },
+
+        '.cm-panels': {
+          position: 'absolute',
+          top: '8px',
+          right: '18px',
+          left: 'auto',
+          bottom: 'auto',
+          width: 'auto',
+          maxWidth: '420px',
+          backgroundColor: 'transparent',
+          zIndex: '40',
+          pointerEvents: 'none'
+        },
+
+        '.cm-panels-bottom, .cm-panels-top': {
+          border: 'none'
+        },
+
+        '.cm-search': {
+          pointerEvents: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          flexWrap: 'wrap',
+          width: '344px',
+          padding: '8px',
+          backgroundColor: '#252526',
+          color: '#d4d4d4',
+          border: '1px solid #3c3c3c',
+          borderRadius: '6px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
+          fontFamily: 'var(--vscode-font-family, Segoe UI, sans-serif)',
+          fontSize: '13px'
+        },
+
+        '.cm-search *': {
+          boxSizing: 'border-box'
+        },
+
+        '.cm-search input[type="text"]': {
+          backgroundColor: '#1e1e1e !important',
+          color: '#d4d4d4 !important',
+          border: '1px solid #3c3c3c',
+          borderRadius: '4px',
+          padding: '4px 4px',
+          boxShadow: 'none',
+          outline: 'none',
+          appearance: 'none',
+          fontSize: '13px'
+        },
+
+        '.cm-search input[type="text"]:focus': {
+          borderColor: '#007acc'
+        },
+
+        '.cm-search input[type="checkbox"]': {
+          appearance: 'auto',
+          accentColor: '#007acc',
+          cursor: 'pointer'
+        },
+
+        '.cm-search button, .cm-search input[type="button"]': {
+          background: '#2f2f2f !important',
+          color: '#d4d4d4 !important',
+          border: '1px solid #4a4a4a',
+          borderRadius: '4px',
+          padding: '4px 4px',
+          fontSize: '13px',
+          cursor: 'pointer',
+          appearance: 'none',
+          boxShadow: 'none',
+          backgroundImage: 'none',
+          textShadow: 'none'
+        },
+
+        '.cm-search button:hover, .cm-search input[type="button"]:hover': {
+          background: '#3a3a3a !important'
+        },
+
+        '.cm-search button:active, .cm-search input[type="button"]:active': {
+          background: '#3a3a3a !important'
+        },
+
+        '.cm-search button:disabled, .cm-search input[type="button"]:disabled': {
+          opacity: '0.5',
+          cursor: 'default'
+        },
+
+        '.cm-search input[type="checkbox"]': {
+          accentColor: '#007acc',
+          cursor: 'pointer'
+        },
+
+        '.cm-search label': {
+          fontSize: '13px',
+          color: '#cccccc',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        },
+
+        '.cm-search [name="close"]': {
+          background: '#2f2f2f !important',
+          color: '#d4d4d4 !important',
+          border: '1px solid #4a4a4a',
+          borderRadius: '4px',
+          padding: '4px 10px',
+          fontWeight: 'normal',
+          appearance: 'none',
+          boxShadow: 'none',
+          backgroundImage: 'none',
+          textShadow: 'none'
+        },
+
+        '.cm-search [name="close"]:hover': {
+          background: '#3a3a3a !important'
+        },
+
+        '.cm-search .cm-search-count': {
+          fontSize: '12px',
+          color: '#cccccc'
+        }
+      }, { dark: true })
+    ]
+  }),
+  parent: jsonEditorHost
+});
 
 let gridHelper = null;
 let axesHelper = null;
@@ -321,9 +545,36 @@ btnJsonClose.addEventListener('click', () => {
 btnJsonApply.addEventListener('click', () => {
   vscode.postMessage({
     type: 'applyJson',
-    jsonText: jsonTextarea.value
+    jsonText: jsonEditorView.state.doc.toString()
   });
 });
+
+btnJsonFormat.addEventListener('click', () => {
+  try {
+    const currentText = jsonEditorView.state.doc.toString();
+    const parsed = JSON.parse(currentText);
+    const formatted = JSON.stringify(parsed, null, 2);
+
+    jsonEditorView.dispatch({
+      changes: {
+        from: 0,
+        to: jsonEditorView.state.doc.length,
+        insert: formatted
+      }
+    });
+
+    setStatus('Formatted JSON.');
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    setStatus(`Format failed: ${msg}`);
+  }
+});
+
+btnJsonExpandAll.addEventListener('click', () => {
+  unfoldAll(jsonEditorView);
+  jsonEditorView.focus();
+});
+
 
 window.addEventListener('resize', onResize);
 
@@ -341,8 +592,16 @@ window.addEventListener('message', async (event) => {
     return;
   }
   if (message.type === 'editJson') {
-    jsonTextarea.value = typeof message.jsonText === 'string' ? message.jsonText : '';
+    const text = typeof message.jsonText === 'string' ? message.jsonText : '';
+    jsonEditorView.dispatch({
+      changes: {
+        from: 0,
+        to: jsonEditorView.state.doc.length,
+        insert: text
+      }
+    });
     jsonEditor.classList.add('visible');
+    jsonEditorView.focus();
     return;
   }
   if (message.type === 'payload') {

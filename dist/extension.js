@@ -157,7 +157,7 @@ class McstructurePreviewProvider {
         });
     }
     getHtml(webview) {
-        const viewerScriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.js'));
+        const viewerScriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.bundle.js'));
         const threeModuleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'build', 'three.module.js'));
         const threeAddonsBaseUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'examples', 'jsm'));
         const nonce = getNonce();
@@ -247,19 +247,11 @@ class McstructurePreviewProvider {
         display: flex;
         gap: 8px;
       }
-      #jsonTextarea {
+      #jsonEditorHost {
         width: 100%;
         height: 100%;
         flex: 1;
-        resize: none;
-        box-sizing: border-box;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: #111;
-        color: #ddd;
-        font-family: Consolas, monospace;
-        font-size: 12px;
-        line-height: 1.45;
-        padding: 8px;
+        min-height: 0;
       }
       #status {
         padding: 6px 10px;
@@ -296,11 +288,13 @@ class McstructurePreviewProvider {
           <div id="jsonEditorHeader">
             <span>MCStructure JSON Editor</span>
             <div id="jsonEditorButtons">
+              <button id="btnJsonFormat">Format</button>
+              <button id="btnJsonExpandAll">Expand All</button>
               <button id="btnJsonApply">Apply</button>
               <button id="btnJsonClose">Close</button>
             </div>
           </div>
-          <textarea id="jsonTextarea" spellcheck="false"></textarea>
+          <div id="jsonEditorHost"></div>
         </div>
       </div>
       <div id="status">Waiting for structure data...</div>
