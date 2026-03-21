@@ -59,6 +59,14 @@ Install from Marketplace once published:
 
 See `package.json` for exact dependency versions.
 
+## Important Notes
+
+- This project is not yet complete.
+- Some blocks are not currently supported by this extension.
+- I am looking for someone to take over development of this extension.
+- If you are interested, please let me know.
+- You can contact me on Discord: `awfulbread`.
+
 ## Feedback
 
 Please file issues for bug reports or feature requests.
