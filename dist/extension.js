@@ -64,7 +64,8 @@ class McstructurePreviewProvider {
         webviewPanel.webview.options = {
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.joinPath(this.context.extensionUri, 'media')
+                vscode.Uri.joinPath(this.context.extensionUri, 'media'),
+                vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three')
             ]
         };
         webviewPanel.webview.html = this.getHtml(webviewPanel.webview);
@@ -79,30 +80,32 @@ class McstructurePreviewProvider {
         let cachedJsonText;
         let payload;
         let loadError;
-        let isWebviewReady = false;
-        const trySendInitialResponse = async () => {
-            if (!isWebviewReady) {
-                return;
-            }
-            if (loadError) {
-                postError(loadError);
-                return;
-            }
-            if (payload !== undefined) {
-                await webviewPanel.webview.postMessage({
-                    type: 'payload',
-                    payload
-                });
-            }
-        };
+        try {
+            const fileData = await vscode.workspace.fs.readFile(document.uri);
+            cachedFileData = fileData;
+            payload = await buildPayload(fileData);
+            void (0, mcstructureJsonEditor_1.buildEditableJson)(fileData).then((jsonText) => {
+                cachedJsonText = jsonText;
+            });
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            loadError = `Failed to parse .mcstructure file: ${message}`;
+        }
         webviewPanel.webview.onDidReceiveMessage(async (message) => {
             if (typeof message !== 'object' || message === null) {
                 return;
             }
             const type = message.type;
             if (type === 'ready') {
-                isWebviewReady = true;
-                await trySendInitialResponse();
+                if (loadError) {
+                    postError(loadError);
+                    return;
+                }
+                void webviewPanel.webview.postMessage({
+                    type: 'payload',
+                    payload
+                });
                 return;
             }
             if (type === 'requestEditJson') {
@@ -152,28 +155,17 @@ class McstructurePreviewProvider {
                 }
             }
         });
-        try {
-            const fileData = await vscode.workspace.fs.readFile(document.uri);
-            cachedFileData = fileData;
-            payload = await buildPayload(fileData);
-            void (0, mcstructureJsonEditor_1.buildEditableJson)(fileData).then((jsonText) => {
-                cachedJsonText = jsonText;
-            });
-        }
-        catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            loadError = `Failed to parse .mcstructure file: ${message}`;
-        }
-        await trySendInitialResponse();
     }
     getHtml(webview) {
         const viewerScriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.js'));
+        const threeModuleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'build', 'three.module.js'));
+        const threeAddonsBaseUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'examples', 'jsm'));
         const nonce = getNonce();
         const csp = [
             "default-src 'none'",
             `img-src ${webview.cspSource} blob: data:`,
             `style-src ${webview.cspSource} 'unsafe-inline'`,
-            `script-src ${webview.cspSource} 'nonce-${nonce}'`,
+            `script-src 'nonce-${nonce}'`,
             `font-src ${webview.cspSource}`
         ].join('; ');
         return `<!DOCTYPE html>
@@ -279,6 +271,14 @@ class McstructurePreviewProvider {
         text-overflow: ellipsis;
       }
     </style>
+    <script type="importmap" nonce="${nonce}">
+      {
+        "imports": {
+          "three": "${threeModuleUri}",
+          "three/addons/": "${threeAddonsBaseUri}/"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="app">
@@ -305,24 +305,6 @@ class McstructurePreviewProvider {
       </div>
       <div id="status">Waiting for structure data...</div>
     </div>
-    <script nonce="${nonce}">
-      window.addEventListener('error', (event) => {
-        const el = document.getElementById('status');
-        if (!el) {
-          return;
-        }
-        const msg = event && event.message ? event.message : 'Unknown webview initialization error';
-        el.textContent = 'Webview initialization error: ' + msg;
-      });
-      window.addEventListener('unhandledrejection', (event) => {
-        const el = document.getElementById('status');
-        if (!el) {
-          return;
-        }
-        const reason = event && event.reason ? String(event.reason) : 'Unhandled promise rejection';
-        el.textContent = 'Webview initialization error: ' + reason;
-      });
-    </script>
     <script type="module" nonce="${nonce}" src="${viewerScriptUri}"></script>
   </body>
 </html>`;

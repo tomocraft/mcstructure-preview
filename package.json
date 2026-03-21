@@ -2,7 +2,7 @@
   "name": "mcstructure-preview",
   "displayName": "MCStructure Preview",
   "description": "Preview Minecraft Bedrock .mcstructure files as an interactive 3D scene.",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "Tomocraft",
   "license": "MIT",
   "icon": "images/icon.png",
