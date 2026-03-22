@@ -4,9 +4,9 @@ import { buildViewerPayload } from './webviewApp';
 import { applyEditableJson, buildEditableJson } from './mcstructureJsonEditor';
 
 class McstructureDocument implements vscode.CustomDocument {
-  public constructor(public readonly uri: vscode.Uri) {}
+  public constructor(public readonly uri: vscode.Uri) { }
 
-  public dispose(): void {}
+  public dispose(): void { }
 }
 
 class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<McstructureDocument> {
@@ -25,7 +25,7 @@ class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<
     );
   }
 
-  private constructor(private readonly context: vscode.ExtensionContext) {}
+  private constructor(private readonly context: vscode.ExtensionContext) { }
 
   public async openCustomDocument(
     uri: vscode.Uri,
@@ -148,7 +148,7 @@ class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<
 
   private getHtml(webview: vscode.Webview): string {
     const viewerScriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.js')
+      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'viewer.bundle.js')
     );
     const threeModuleUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'three', 'build', 'three.module.js')
@@ -245,19 +245,11 @@ class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<
         display: flex;
         gap: 8px;
       }
-      #jsonTextarea {
+      #jsonEditorHost {
         width: 100%;
         height: 100%;
         flex: 1;
-        resize: none;
-        box-sizing: border-box;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: #111;
-        color: #ddd;
-        font-family: Consolas, monospace;
-        font-size: 12px;
-        line-height: 1.45;
-        padding: 8px;
+        min-height: 0;
       }
       #status {
         padding: 6px 10px;
@@ -294,11 +286,13 @@ class McstructurePreviewProvider implements vscode.CustomReadonlyEditorProvider<
           <div id="jsonEditorHeader">
             <span>MCStructure JSON Editor</span>
             <div id="jsonEditorButtons">
+              <button id="btnJsonFormat">Format</button>
+              <button id="btnJsonExpandAll">Expand All</button>
               <button id="btnJsonApply">Apply</button>
               <button id="btnJsonClose">Close</button>
             </div>
           </div>
-          <textarea id="jsonTextarea" spellcheck="false"></textarea>
+          <div id="jsonEditorHost"></div>
         </div>
       </div>
       <div id="status">Waiting for structure data...</div>
@@ -322,5 +316,5 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(McstructurePreviewProvider.register(context));
 }
 
-export function deactivate(): void {}
+export function deactivate(): void { }
 
