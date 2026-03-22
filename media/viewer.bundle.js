@@ -20797,10 +20797,6 @@ var jsonEditorView = new EditorView({
           opacity: "0.5",
           cursor: "default"
         },
-        '.cm-search input[type="checkbox"]': {
-          accentColor: "#007acc",
-          cursor: "pointer"
-        },
         ".cm-search label": {
           fontSize: "13px",
           color: "#cccccc",
