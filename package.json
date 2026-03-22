@@ -54,7 +54,7 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.40.0",
     "@lezer/highlight": "^1.2.3",
-    "minecraft-assets": "github:tomocraft/node-minecraft-assets#4ed59c304078bfd8a1d754cfe4aca4fe04c035b6",
+    "minecraft-assets": "github:tomocraft/node-minecraft-assets#f671313e8bf186bd40d002837c75b48a145fb88c",
     "prismarine-nbt": "^2.8.0",
     "three": "^0.183.2"
   },
