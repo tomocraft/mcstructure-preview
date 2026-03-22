@@ -17,7 +17,6 @@ const options = {
   sourcemap: true,
   target: 'es2020',
   logLevel: 'info',
-  external: ['three', 'three/addons/*']
 };
 
 if (watch) {
